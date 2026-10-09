@@ -1547,6 +1547,7 @@ func registerWebRoutes(m *web.Router, webAuth *AuthMiddleware) {
 		}, reqRepoProjectsWriter, context.RepoMustNotBeArchived())
 	}, optSignIn, context.RepoAssignment, reqRepoProjectsReader, repo.MustEnableRepoProjects)
 	// end "/{username}/{reponame}/projects"
+	m.Get("/{username}/{reponame}/board", optSignIn, context.RepoAssignment, reqRepoProjectsReader, repo.MustEnableRepoProjects, repo.Board)
 
 	m.Group("/{username}/{reponame}/actions", func() {
 		m.Get("", actions.List)

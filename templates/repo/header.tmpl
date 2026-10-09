@@ -143,6 +143,9 @@
 
 					{{$projectsUnit := .Repository.MustGetUnit ctx ctx.Consts.RepoUnitTypeProjects}}
 					{{if and (not ctx.Consts.RepoUnitTypeProjects.UnitGlobalDisabled) (.Permission.CanRead ctx.Consts.RepoUnitTypeProjects) ($projectsUnit.ProjectsConfig.IsProjectsAllowed "repo")}}
+						<a href="{{.RepoLink}}/board" class="item">
+							{{svg "octicon-table"}} {{ctx.Locale.Tr "repo.projects.board"}}
+						</a>
 						<a href="{{.RepoLink}}/projects" class="{{if .IsProjectsPage}}active {{end}}item">
 							{{svg "octicon-project"}} {{ctx.Locale.Tr "repo.projects"}}
 							{{if .Repository.NumOpenProjects}}

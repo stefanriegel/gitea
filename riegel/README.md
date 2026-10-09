@@ -42,3 +42,4 @@ the tag, backs up the database and data, and swaps the container.
 | Patch | Why |
 |---|---|
 | `project_card` event | Webhooks and Actions fire when an issue is added to a project board, moved between columns, or removed. Lets a card moved into an "Agent" column start an autonomous coding agent (`on: project_card`). |
+| Repository board | Every new, migrated or forked repository gets a "Board" project (columns from `[project] PROJECT_BOARD_BASIC_KANBAN_TYPE`), and the repo header links it as a "Board" tab (`/{owner}/{repo}/board` redirects to it). |

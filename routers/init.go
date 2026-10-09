@@ -47,6 +47,7 @@ import (
 	mirror_service "gitea.dev/services/mirror"
 	"gitea.dev/services/oauth2_provider"
 	packages_spec "gitea.dev/services/packages/pkgspec"
+	project_service "gitea.dev/services/projects"
 	pull_service "gitea.dev/services/pull"
 	release_service "gitea.dev/services/release"
 	repo_service "gitea.dev/services/repository"
@@ -153,6 +154,7 @@ func InitWebInstalled(ctx context.Context) {
 	mirror_service.InitSyncMirrors()
 	mustInit(webhook.Init)
 	mustInit(pull_service.Init)
+	mustInit(project_service.Init)
 	mustInitCtx(ctx, automerge.Init)
 	mustInit(task.Init)
 	mustInit(websocket_service.Init)

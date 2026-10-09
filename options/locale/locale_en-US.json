@@ -1376,6 +1376,7 @@
   "repo.projects.edit_subheader": "Projects organize issues and track progress.",
   "repo.projects.modify": "Edit Project",
   "repo.projects.edit_success": "Project \"%s\" has been updated.",
+  "repo.projects.board": "Board",
   "repo.projects.type.none": "None",
   "repo.projects.type.basic_kanban": "Basic Kanban",
   "repo.projects.type.bug_triage": "Bug Triage",
