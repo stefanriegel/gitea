@@ -42,3 +42,4 @@ the tag, backs up the database and data, and swaps the container.
 
 | Patch | Why |
 |---|---|
+| "Agent-Konten" page | Org settings page over our agent scheduler (`[riegel] AGENT_SCHEDULER_URL/TOKEN`): accounts with usage (5h/week), "Konto anlegen" (bot user in team `agents` + token + scheduler entry) and "Konto löschen" (bot leaves the team, loses its tokens, stays as author), the PM's pipeline numbers of the last 7 days, state, Claude token entry, Codex device login, OpenAI-compatible endpoint (base URL, key, models), roles (which steps an account takes), priority and parallel runs, pause; plus the agent queue and blocked tickets. |

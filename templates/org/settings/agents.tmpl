@@ -1,0 +1,225 @@
+{{template "org/settings/layout_head" (dict "pageClass" "organization settings agents")}}
+<style>.agent-usage{height:8px;border-radius:4px;background:var(--color-secondary);overflow:hidden;margin-bottom:4px}.agent-usage>div{height:100%}</style>
+<div class="org-setting-content">
+	{{if .Pipeline}}
+	<h4 class="ui top attached header">Pipeline in den letzten {{.Pipeline.Days}} Tagen</h4>
+	<div class="ui attached segment">
+		<div class="ui four statistics tiny">
+			<div class="statistic"><div class="value">{{.Pipeline.Done}}</div><div class="label">Tickets fertig</div></div>
+			<div class="statistic"><div class="value">{{.Pipeline.Auto}}</div><div class="label">davon ohne dich gemergt</div></div>
+			<div class="statistic"><div class="value">{{.Pipeline.LeadH}} h</div><div class="label">typisch vom Start bis zum Merge</div></div>
+			<div class="statistic"><div class="value {{if .Pipeline.MasterRed}}red{{end}}">{{.Pipeline.MasterRed}}</div><div class="label">mal master-CI rot</div></div>
+		</div>
+		<p class="tw-mt-3">{{if .Pipeline.Waiting}}<strong>{{.Pipeline.Waiting}} Tickets warten auf dich</strong>, das älteste seit {{.Pipeline.OldestWait}} h (Label <code>waiting-for-you</code>).{{else}}Nichts wartet auf dich.{{end}}</p>
+		<table class="ui very basic compact table" style="width:auto">
+			<thead><tr><th>Repo</th><th>Fertig</th><th>Ohne dich</th><th>Start → Merge</th><th>master rot</th><th>Wartet auf dich</th></tr></thead>
+			<tbody>{{range .Pipeline.Repos}}<tr><td><a href="{{AppSubUrl}}/{{.Repo}}">{{.Repo}}</a></td><td>{{.Done}}</td><td>{{.Auto}}</td><td>{{.LeadH}} h</td><td>{{.MasterRed}}</td><td>{{.Waiting}}</td></tr>{{end}}</tbody>
+		</table>
+		<p class="text small grey">„Typisch“ = Median. Gezählt werden gemergte Agenten-PRs, die ein Ticket schließen; „ohne dich“ = klein genug zum automatischen Mergen. Stand alle 5 Minuten.</p>
+	</div>
+	{{end}}
+
+	<h4 class="ui top attached header">
+		Agent-Konten
+		<div class="ui right">
+			<a class="ui tiny basic button" href="{{.OrgLink}}/settings/agents">Aktualisieren</a>
+		</div>
+	</h4>
+	<div class="ui attached segment">
+		{{if .SchedulerError}}
+			<div class="ui negative message">Scheduler nicht erreichbar: {{.SchedulerError}}</div>
+		{{else if .LoopError}}
+			<div class="ui warning message">Letzter Durchlauf mit Fehler: {{.LoopError}}</div>
+		{{end}}
+		<table class="ui very basic table">
+			<thead><tr><th>Konto</th><th>Status</th><th>5 Stunden</th><th>Woche</th><th></th></tr></thead>
+			<tbody>
+			{{range .Accounts}}
+				<tr>
+					<td>
+						<img class="ui avatar tw-align-middle" src="{{AppSubUrl}}/{{.BotLogin}}.png" alt="" width="28" height="28">
+						<strong>{{.DisplayName}}</strong>
+						<div class="text small grey">{{if eq .Engine "openai"}}OpenAI-kompatibel{{else}}{{.Engine}}{{end}} · @{{.BotLogin}}</div>
+						<div class="text small">{{.RoleText}} · Priorität {{.Priority}} · {{.Slots}} {{if eq .Slots 1}}Platz{{else}}Plätze{{end}}</div>
+						{{if .Models}}<div class="text small grey">{{.Models.large}}{{if .Models.small}} / {{.Models.small}}{{end}}</div>{{end}}
+					</td>
+					<td>
+						<span class="ui small {{.StateColor}} label">{{.State}}</span>
+						{{range .Runs}}<div class="text small"><a href="{{AppSubUrl}}/{{.Repo}}/issues/{{.Issue}}">{{.Repo}}#{{.Issue}}</a></div>{{end}}
+						{{if .LoginError}}<div class="text small red">{{.LoginError}}</div>{{end}}
+					</td>
+					<td class="tw-w-1/5">
+{{if eq .Engine "openai"}}
+						<div class="text small grey">pro Token bezahlt</div>
+{{else if .HasFiveHour}}
+						<div class="agent-usage"><div style="width:{{.FiveHour}}%;background:{{if ge .FiveHour 90}}var(--color-red){{else if ge .FiveHour 70}}var(--color-orange){{else}}var(--color-green){{end}}"></div></div>
+						<div class="text small"><strong>{{.FiveHour}} %</strong> genutzt</div>
+						{{if .FiveHourReset}}<div class="text small grey">setzt sich {{.FiveHourReset}} zurück</div>{{end}}
+						{{else}}<div class="text small grey">{{if .Measured}}kein 5-Std-Limit{{else}}noch nicht gemessen{{end}}</div>{{end}}
+					</td>
+					<td class="tw-w-1/5">
+{{if eq .Engine "openai"}}
+						<div class="text small grey">kein Kontingent</div>
+{{else if .HasWeek}}
+						<div class="agent-usage"><div style="width:{{.Week}}%;background:{{if ge .Week 90}}var(--color-red){{else if ge .Week 70}}var(--color-orange){{else}}var(--color-green){{end}}"></div></div>
+						<div class="text small"><strong>{{.Week}} %</strong> genutzt</div>
+						{{if .WeekReset}}<div class="text small grey">setzt sich {{.WeekReset}} zurück</div>{{end}}
+						{{else}}<div class="text small grey">noch nicht gemessen</div>{{end}}
+					</td>
+					<td class="right aligned">
+						{{if eq .Engine "claude"}}
+							{{if and .Login (eq .Login.State "need_code")}}
+								<div class="ui info message tw-text-left">
+									1. <a href="{{.Login.URL}}" target="_blank" rel="noopener">Hier bei Claude anmelden</a> (mit dem Konto für {{.DisplayName}})<br>
+									2. Den angezeigten Code hier einfügen:
+									<form class="ui form tw-flex tw-gap-1 tw-mt-2" method="post" action="{{$.OrgLink}}/settings/agents/{{.ID}}/claude-code">
+										{{$.CsrfTokenHtml}}
+										<input type="text" name="code" placeholder="Code" autocomplete="off" required>
+										<button class="ui small primary button">Fertig</button>
+									</form>
+								</div>
+							{{else}}
+								<form class="tw-inline" method="post" action="{{$.OrgLink}}/settings/agents/{{.ID}}/claude-login">
+									{{$.CsrfTokenHtml}}
+									<button class="ui small primary button">{{if .LoggedIn}}Neu anmelden{{else}}Anmelden{{end}}</button>
+								</form>
+								<details class="tw-mt-2 tw-text-left"><summary class="text small grey">oder Token aus <code>claude setup-token</code></summary>
+									<form class="ui form tw-flex tw-gap-1 tw-mt-1" method="post" action="{{$.OrgLink}}/settings/agents/{{.ID}}/claude-token">
+										{{$.CsrfTokenHtml}}
+										<input type="password" name="token" placeholder="sk-ant-…" autocomplete="off" required>
+										<button class="ui small button">Speichern</button>
+									</form>
+								</details>
+							{{end}}
+						{{else if eq .Engine "openai"}}
+							<details class="tw-text-left"><summary class="ui small {{if .LoggedIn}}basic {{else}}primary {{end}}button">Endpunkt &amp; Key</summary>
+								<form class="ui form tw-mt-2" method="post" action="{{$.OrgLink}}/settings/agents/{{.ID}}/openai">
+									{{$.CsrfTokenHtml}}
+									<div class="field"><label>Base-URL</label><input type="url" name="base_url" value="{{.BaseURL}}" placeholder="https://…/v1" required></div>
+									<div class="field"><label>API-Key</label><input type="password" name="api_key" autocomplete="off" placeholder="{{if .LoggedIn}}leer lassen = unverändert{{else}}Key{{end}}" {{if not .LoggedIn}}required{{end}}></div>
+									<div class="field"><label>Großes Modell</label><input type="text" name="large" value="{{.Models.large}}" required></div>
+									<div class="field"><label>Kleines Modell (einfache Tickets, optional)</label><input type="text" name="small" value="{{.Models.small}}"></div>
+									<button class="ui small primary button">Speichern</button>
+								</form>
+								<p class="text small grey">Der Anbieter braucht die Responses-API (<code>/responses</code>) mit Tool-Calls.</p>
+							</details>
+						{{else}}
+							{{if and .Login (eq .Login.State "pending")}}
+								<div class="ui info message tw-text-left">
+									Öffne <a href="{{.Login.URL}}" target="_blank" rel="noopener">{{.Login.URL}}</a><br>
+									und gib diesen Code ein: <strong class="tw-text-16">{{.Login.Code}}</strong><br>
+									<span class="text small">Danach „Aktualisieren“.</span>
+								</div>
+							{{else}}
+								<form class="tw-inline" method="post" action="{{$.OrgLink}}/settings/agents/{{.ID}}/codex-login">
+									{{$.CsrfTokenHtml}}
+									<button class="ui small primary button">{{if .LoggedIn}}Neu anmelden{{else}}Anmelden{{end}}</button>
+								</form>
+							{{end}}
+						{{end}}
+						<details class="tw-mt-2 tw-text-left"><summary class="text small grey">Rollen &amp; Priorität</summary>
+							<form class="ui form tw-mt-1" method="post" action="{{$.OrgLink}}/settings/agents/{{.ID}}/settings">
+								{{$.CsrfTokenHtml}}
+								{{$acc := .}}
+								<div class="field">{{range $m := $.AgentModes}}<div class="ui checkbox tw-mr-3"><input type="checkbox" name="roles" value="{{$m}}" {{if index $acc.HasRole $m}}checked{{end}}><label>{{index $.AgentModeNames $m}}</label></div>{{end}}</div>
+								<div class="tw-flex tw-gap-2 tw-items-end">
+									<div class="field"><label>Priorität</label><input type="number" name="priority" min="1" max="9" value="{{.Priority}}" style="width:5em"></div>
+									<div class="field"><label>Plätze</label><input type="number" name="slots" min="1" max="8" value="{{.Slots}}" style="width:5em"></div>
+									<button class="ui small button">Speichern</button>
+								</div>
+								<p class="text small grey">Keine Rolle angehakt = alle. Priorität 1 wird zuerst gefragt, die nächste nur, wenn alle davor belegt oder aufgebraucht sind.</p>
+							</form>
+						</details>
+						<details class="tw-mt-2 tw-text-left"><summary class="text small red">Konto löschen</summary>
+							<form class="ui form tw-mt-1" method="post" action="{{$.OrgLink}}/settings/agents/{{.ID}}/delete">
+								{{$.CsrfTokenHtml}}
+								<div class="ui checkbox"><input type="checkbox" name="confirm" value="true" required><label>{{.DisplayName}} wirklich löschen</label></div>
+								<button class="ui small red button tw-mt-1">Löschen</button>
+								<p class="text small grey">Login und Key sind dann weg. @{{.BotLogin}} bleibt als Autor seiner Kommentare, kommt aber aus dem Team „agents“ und verliert seine Tokens.</p>
+							</form>
+						</details>
+						<form class="tw-inline" method="post" action="{{$.OrgLink}}/settings/agents/{{.ID}}/enabled">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="enabled" value="{{if .Enabled}}false{{else}}true{{end}}">
+							<button class="ui small basic button">{{if .Enabled}}Pausieren{{else}}Aktivieren{{end}}</button>
+						</form>
+					</td>
+				</tr>
+			{{else}}
+				<tr><td colspan="5">Noch keine Konten.</td></tr>
+			{{end}}
+			</tbody>
+		</table>
+		<details class="tw-mb-4">
+			<summary class="ui small primary button">Konto anlegen</summary>
+			<form class="ui form tw-mt-3" method="post" action="{{.OrgLink}}/settings/agents">
+				{{.CsrfTokenHtml}}
+				<div class="three fields">
+					<div class="field"><label>Typ</label>
+						<select name="engine" class="ui dropdown" required>
+							<option value="claude">Claude-Abo</option>
+							<option value="codex">Codex-Abo (ChatGPT)</option>
+							<option value="openai">OpenAI-kompatibel (API-Key)</option>
+						</select>
+					</div>
+					<div class="field"><label>Kennung (wird der Bot-Benutzer)</label><input type="text" name="login" placeholder="claude-c" pattern="[a-z][a-z0-9-]{1,30}" required></div>
+					<div class="field"><label>Anzeigename</label><input type="text" name="display_name" placeholder="Claude C" required></div>
+				</div>
+				<p class="text small grey">Nur für „OpenAI-kompatibel“ (geht auch später über „Endpunkt &amp; Key“):</p>
+				<div class="four fields">
+					<div class="field"><label>Base-URL</label><input type="url" name="base_url" placeholder="https://…/v1"></div>
+					<div class="field"><label>API-Key</label><input type="password" name="api_key" autocomplete="off"></div>
+					<div class="field"><label>Großes Modell</label><input type="text" name="large"></div>
+					<div class="field"><label>Kleines Modell (optional)</label><input type="text" name="small"></div>
+				</div>
+				<button class="ui small primary button">Anlegen</button>
+				<p class="text small grey tw-mt-2">Legt den Bot-Benutzer an (Team „agents“, Schreibrecht auf alle Repos dieser Organisation) und das Konto im Scheduler. Claude- und Codex-Konten danach in ihrer Zeile anmelden.</p>
+			</form>
+		</details>
+		<p class="text small grey">„Genutzt“ = verbrauchtes Kontingent im Zeitfenster; zum angegebenen Zeitpunkt beginnt es wieder bei 0 %. Konten ab 90 % bekommen keine neuen Tickets. Stand: {{.Updated}}</p>
+	</div>
+
+	<h4 class="ui top attached header">Als Nächstes</h4>
+	<div class="ui attached segment">
+		{{if .Next}}
+			<ol class="tw-m-0">
+			{{range .Next}}
+				<li><a href="{{.URL}}">{{.Repo}}#{{.Number}}</a> {{.Title}}
+					<span class="ui tiny basic label">{{index $.AgentModeNames .Mode}}</span></li>
+			{{end}}
+			</ol>
+		{{else}}
+			<span class="text grey">Nichts in der Warteschlange.</span>
+		{{end}}
+	</div>
+
+	<h4 class="ui top attached header">Verbrauch der letzten 7 Tage</h4>
+	<div class="ui attached segment">
+		{{if .UsageTotal.Runs}}
+			<p><strong>{{.UsageTotal.Runs}} Läufe · {{.UsageTotal.Tokens}} Tokens · {{.UsageTotal.Cost}}</strong>
+				<span class="text small grey">Kosten-Gegenwert zu API-Preisen, Näherung für die Abo-Belastung (Codex meldet keine Kosten)</span></p>
+			<div class="tw-flex tw-flex-wrap tw-gap-6">
+				{{range $title, $rows := dict "Nach Repo" .UsageRepos "Nach Schritt" .UsageModes "Teuerste Tickets" .UsageTop}}
+				<table class="ui very basic compact table" style="width:auto">
+					<thead><tr><th>{{$title}}</th><th>Läufe</th><th>Tokens</th><th>Kosten</th></tr></thead>
+					<tbody>{{range $rows}}<tr><td>{{if .Link}}<a href="{{.Link}}">{{.Name}}</a>{{else}}{{.Name}}{{end}}</td><td>{{.Runs}}</td><td>{{.Tokens}}</td><td>{{.Cost}}</td></tr>{{end}}</tbody>
+				</table>
+				{{end}}
+			</div>
+		{{else}}
+			<span class="text grey">Noch keine Läufe mit Verbrauchsdaten.</span>
+		{{end}}
+	</div>
+
+	{{if .Blocked}}
+	<h4 class="ui top attached header">Wartet auf andere Tickets</h4>
+	<div class="ui attached segment">
+		<ul class="tw-m-0">
+		{{range .Blocked}}
+			<li><a href="{{.URL}}">{{.Repo}}#{{.Number}}</a> {{.Title}} <span class="text small grey">wartet auf {{range $i, $b := .BlockedBy}}{{if $i}}, {{end}}{{$b}}{{end}}</span></li>
+		{{end}}
+		</ul>
+	</div>
+	{{end}}
+</div>
+{{template "org/settings/layout_footer" .}}
