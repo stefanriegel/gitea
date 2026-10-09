@@ -454,7 +454,7 @@ func UpdateIssueProject(ctx *context.Context) {
 	projectIDs := ctx.FormStringInt64s("id")
 	var failedIssues []int64
 	for _, issue := range issues {
-		if err := issues_model.IssueAssignOrRemoveProject(ctx, issue, ctx.Doer, projectIDs); err != nil {
+		if err := project_service.AssignOrRemoveIssueProjects(ctx, issue, ctx.Doer, projectIDs); err != nil {
 			if errors.Is(err, util.ErrPermissionDenied) {
 				failedIssues = append(failedIssues, issue.ID)
 				continue

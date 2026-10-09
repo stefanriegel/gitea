@@ -59,6 +59,8 @@ func IsDefaultBranchWorkflow(triggedEvent webhook_module.HookEventType) bool {
 		// Github "issues" event
 		// https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#issues
 		return true
+	case webhook_module.HookEventProjectCard:
+		return true
 	case webhook_module.HookEventWorkflowRun:
 		// GitHub "workflow_run" event
 		// https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run

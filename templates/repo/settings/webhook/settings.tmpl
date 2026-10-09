@@ -237,6 +237,16 @@
 				</div>
 			</div>
 		</div>
+		<!-- Project Card -->
+		<div class="seven wide column">
+			<div class="field">
+				<div class="ui checkbox">
+					<input name="project_card" type="checkbox" {{if .Webhook.HookEvents.Get "project_card"}}checked{{end}}>
+					<label>{{ctx.Locale.Tr "repo.settings.event_project_card"}}</label>
+					<span class="help">{{ctx.Locale.Tr "repo.settings.event_project_card_desc"}}</span>
+				</div>
+			</div>
+		</div>
 
 		<!-- Pull Request Events -->
 		<div class="fourteen wide column">

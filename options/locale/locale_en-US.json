@@ -2312,6 +2312,8 @@
   "repo.settings.event_issue_label_desc": "Issue labels updated or cleared.",
   "repo.settings.event_issue_milestone": "Issue Milestoned",
   "repo.settings.event_issue_milestone_desc": "Issue milestoned or demilestoned.",
+  "repo.settings.event_project_card": "Project Card",
+  "repo.settings.event_project_card_desc": "Issue or pull request added to, moved between columns of, or removed from a project.",
   "repo.settings.event_issue_comment": "Issue Comment",
   "repo.settings.event_issue_comment_desc": "Issue comment created, edited, or deleted.",
   "repo.settings.event_header_pull_request": "Pull Request Events",

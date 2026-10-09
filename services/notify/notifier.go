@@ -19,6 +19,7 @@ import (
 // Notifier defines an interface to notify receiver
 type Notifier interface {
 	Run()
+	ProjectCardNotifier
 
 	AdoptRepository(ctx context.Context, doer, u *user_model.User, repo *repo_model.Repository)
 	CreateRepository(ctx context.Context, doer, u *user_model.User, repo *repo_model.Repository)

@@ -5,6 +5,7 @@ package project
 
 import (
 	"context"
+	"maps"
 	"slices"
 	"strings"
 
@@ -24,7 +25,8 @@ var ErrIssueNotInProject = util.ErrorWrap(util.ErrUnprocessableContent, "all iss
 
 // AddIssueToColumn assigns the issue to the column's project if needed, then places it in
 // the column. One transaction, so a failure cannot strand it in the default column.
-func AddIssueToColumn(ctx context.Context, doer *user_model.User, issue *issues_model.Issue, column *project_model.Column) error {
+func AddIssueToColumn(ctx context.Context, doer *user_model.User, issue *issues_model.Issue, column *project_model.Column) (err error) {
+	defer notifyProjectCardAfter(ctx, doer, issue.ID)(&err)
 	return db.WithTx(ctx, func(ctx context.Context) error {
 		projectIDs, err := issue.ProjectIDs(ctx)
 		if err != nil {
@@ -42,7 +44,8 @@ func AddIssueToColumn(ctx context.Context, doer *user_model.User, issue *issues_
 
 // MoveIssueToColumn places an issue already in the project into a column, appending it
 // when sorting is absent.
-func MoveIssueToColumn(ctx context.Context, doer *user_model.User, issue *issues_model.Issue, column *project_model.Column, sorting optional.Option[int64]) error {
+func MoveIssueToColumn(ctx context.Context, doer *user_model.User, issue *issues_model.Issue, column *project_model.Column, sorting optional.Option[int64]) (err error) {
+	defer notifyProjectCardAfter(ctx, doer, issue.ID)(&err)
 	return db.WithTx(ctx, func(ctx context.Context) error {
 		position := sorting.Value()
 		if !sorting.Has() {
@@ -58,7 +61,8 @@ func MoveIssueToColumn(ctx context.Context, doer *user_model.User, issue *issues
 
 // RemoveIssueFromColumn detaches the issue from the column's project, reporting a
 // not-exist error when it is not in that column.
-func RemoveIssueFromColumn(ctx context.Context, doer *user_model.User, issue *issues_model.Issue, column *project_model.Column) error {
+func RemoveIssueFromColumn(ctx context.Context, doer *user_model.User, issue *issues_model.Issue, column *project_model.Column) (err error) {
+	defer notifyProjectCardAfter(ctx, doer, issue.ID)(&err)
 	return db.WithTx(ctx, func(ctx context.Context) error {
 		exists, err := project_model.IsIssueInColumn(ctx, issue.ID, column)
 		if err != nil {
@@ -77,7 +81,8 @@ func RemoveIssueFromColumn(ctx context.Context, doer *user_model.User, issue *is
 }
 
 // MoveIssuesOnProjectColumn moves or keeps issues in a column and sorts them inside that column
-func MoveIssuesOnProjectColumn(ctx context.Context, doer *user_model.User, column *project_model.Column, sortedIssueIDs map[int64]int64) error {
+func MoveIssuesOnProjectColumn(ctx context.Context, doer *user_model.User, column *project_model.Column, sortedIssueIDs map[int64]int64) (err error) {
+	defer notifyProjectCardAfter(ctx, doer, slices.Collect(maps.Values(sortedIssueIDs))...)(&err)
 	return db.WithTx(ctx, func(ctx context.Context) error {
 		issueIDs := make([]int64, 0, len(sortedIssueIDs))
 		for _, issueID := range sortedIssueIDs {

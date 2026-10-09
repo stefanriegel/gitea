@@ -30,6 +30,7 @@ import (
 	"gitea.dev/services/context"
 	"gitea.dev/services/convert"
 	issue_service "gitea.dev/services/issue"
+	project_service "gitea.dev/services/projects"
 )
 
 // SearchIssues searches for issues across the repositories that the user has access to
@@ -846,7 +847,7 @@ func EditIssue(ctx *context.APIContext) {
 
 	// Update projects if provided
 	if canWrite && form.Projects != nil {
-		if err := issues_model.IssueAssignOrRemoveProject(ctx, issue, ctx.Doer, *form.Projects); err != nil {
+		if err := project_service.AssignOrRemoveIssueProjects(ctx, issue, ctx.Doer, *form.Projects); err != nil {
 			if errors.Is(err, util.ErrPermissionDenied) || errors.Is(err, util.ErrNotExist) {
 				ctx.APIError(http.StatusBadRequest, err.Error())
 			} else {

@@ -36,6 +36,7 @@ import (
 	git_service "gitea.dev/services/git"
 	issue_service "gitea.dev/services/issue"
 	notify_service "gitea.dev/services/notify"
+	project_service "gitea.dev/services/projects"
 )
 
 func getPullWorkingLockKey(prID int64) string {
@@ -193,6 +194,9 @@ func NewPullRequest(ctx context.Context, opts *NewPullRequestOptions) error {
 	}
 	for _, assignee := range assignees {
 		notify_service.IssueChangeAssignee(ctx, issue.Poster, issue, assignee, false, assigneeCommentMap[assignee.ID])
+	}
+	if len(opts.ProjectIDs) > 0 {
+		project_service.NotifyNewIssueProjects(ctx, issue.Poster, issue)
 	}
 
 	return nil

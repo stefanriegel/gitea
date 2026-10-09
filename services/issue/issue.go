@@ -19,6 +19,7 @@ import (
 	"gitea.dev/modules/log"
 	"gitea.dev/modules/storage"
 	notify_service "gitea.dev/services/notify"
+	project_service "gitea.dev/services/projects"
 )
 
 // NewIssue creates new issue with labels for repository.
@@ -78,6 +79,9 @@ func NewIssue(ctx context.Context, repo *repo_model.Repository, issue *issues_mo
 		for _, assignee := range assignees {
 			notify_service.IssueChangeAssignee(ctx, issue.Poster, issue, assignee, false, assigneeCommentMap[assignee.ID])
 		}
+	}
+	if len(projectIDs) > 0 {
+		project_service.NotifyNewIssueProjects(ctx, issue.Poster, issue)
 	}
 
 	return nil

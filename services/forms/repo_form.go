@@ -214,6 +214,7 @@ type WebhookForm struct {
 	Status                   bool
 	WorkflowRun              bool
 	WorkflowJob              bool
+	ProjectCard              bool
 	Active                   bool
 	BranchFilter             string `binding:"GlobPattern"`
 	AuthorizationHeader      string

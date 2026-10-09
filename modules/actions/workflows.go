@@ -381,6 +381,12 @@ func detectWorkflowMatch(ctx context.Context, gitRepo *git.Repository, commit *g
 		}
 		return detectNotApplicable
 
+	case webhook_module.HookEventProjectCard:
+		if matchProjectCardEvent(payloadAs[*api.ProjectCardPayload](payload, inputEvent), evt) {
+			return detectMatched
+		}
+		return detectNotApplicable
+
 	default:
 		log.Warn("unsupported event %q", inputEvent)
 		return detectNotApplicable

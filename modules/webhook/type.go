@@ -70,6 +70,7 @@ func AllEvents() []HookEventType {
 		HookEventStatus,
 		HookEventWorkflowRun,
 		HookEventWorkflowJob,
+		HookEventProjectCard,
 	}
 }
 

@@ -177,6 +177,11 @@ func PrepareWebhook(ctx context.Context, w *webhook_model.Webhook, event webhook
 		return nil
 	}
 
+	// only the Gitea and Gogs types send raw payloads, the others have no project_card converter
+	if event == webhook_module.HookEventProjectCard && w.Type != webhook_module.GITEA && w.Type != webhook_module.GOGS {
+		return nil
+	}
+
 	// If payload has no associated branch (e.g. it's a new tag, issue, etc.), branch filter has no effect.
 	if ref := getPayloadRef(p); ref != "" {
 		// Check the payload's git ref against the webhook's branch filter.
