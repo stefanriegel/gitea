@@ -1053,6 +1053,8 @@ func registerWebRoutes(m *web.Router, webAuth *AuthMiddleware) {
 				}, actions.MustEnableActions)
 
 				m.Get("/audit_logs", org_setting.ViewAuditLogs)
+				m.Get("/agents", org.AgentAccounts)
+				m.Post("/agents/{account}/{action}", org.AgentAccountPost)
 
 				m.Post("/rename", web.Bind[*forms.RenameOrgForm](), org.SettingsRenamePost)
 				m.Post("/delete", org.SettingsDeleteOrgPost)
