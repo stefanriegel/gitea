@@ -17,6 +17,7 @@
 			{{ctx.Locale.Tr "settings.applications"}}
 		</a>
 		{{end}}
+		<a class="{{if .PageIsSettingsAgents}}active {{end}}item" href="{{.OrgLink}}/settings/agents">Agent-Konten</a>
 		<a class="{{if .PageIsSettingsBlockedUsers}}active {{end}}item" href="{{.OrgLink}}/settings/blocked_users">
 			{{ctx.Locale.Tr "user.block.list"}}
 		</a>
