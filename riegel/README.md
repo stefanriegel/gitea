@@ -43,3 +43,4 @@ the tag, backs up the database and data, and swaps the container.
 |---|---|
 | `project_card` event | Webhooks and Actions fire when an issue is added to a project board, moved between columns, or removed. Lets a card moved into an "Agent" column start an autonomous coding agent (`on: project_card`). |
 | Repository board | Every new, migrated or forked repository gets a "Board" project (columns from `[project] PROJECT_BOARD_BASIC_KANBAN_TYPE`), and the repo header links it as a "Board" tab (`/{owner}/{repo}/board` redirects to it). |
+| "Agent-Konten" page | Org settings page over our agent scheduler (`[riegel] AGENT_SCHEDULER_URL/TOKEN`): accounts with usage (5h/week), state, Claude token entry, Codex device login, OpenAI-compatible endpoint (base URL, key, models), roles (which steps an account takes), priority and parallel runs, pause; plus the agent queue and blocked tickets. |
